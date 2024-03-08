@@ -12,28 +12,28 @@ export default function Movies() {
 
   const [error, setError] = useState(false);
 
-  // const movieName = searchParams.get('query') ?? '';
+  const movieName = searchParams.get('query') ?? '';
 
-  // useEffect(() => {
-  //   const fetchDataInfo = async () => {
-  //     setIsLoading(true)
-  //     try {
-  //       const data = await fetchData(movieName)
-  //       setSearchResults(data.results)
-  //     } catch (error) {
-  //       setError(error)
-  //     } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
-  //   fetchDataInfo()
+  useEffect(() => {
+    const fetchDataInfo = async () => {
+      setIsLoading(true)
+      try {
+        const data = await fetchData(movieName)
+        setSearchResults(data.results)
+      } catch (error) {
+        setError(error)
+      } finally {
+      setIsLoading(false)
+    }
+  }
+    fetchDataInfo()
 
-  // },[movieName])
+  },[movieName])
 
-  // const searchMovies = async query => {
-  //     const nextParams = query !== '' ? { query } : {};
-  //     setSearchParams(nextParams);
-  // };
+  const searchMovies = async query => {
+      const nextParams = query !== '' ? { query } : {};
+      setSearchParams(nextParams);
+  };
   return (
     <>
       <SearchBox value={movieName} onSearch={searchMovies} />
