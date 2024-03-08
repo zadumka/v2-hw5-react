@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useParams, useLocation } from 'react-router-dom';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { getDataById } from '../../fetchArticles';
 import { BackLink, Loader, ErrorMessage } from '../../components';
 import css from './MovieDetailsPage.module.css';
@@ -11,7 +11,7 @@ export default function MovieDetailsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const location = useLocation();
-  // const backLinkHref = useRef(location?.state?.from ?? '/Home');
+  const backLinkHref = useRef(location?.state?.from ?? '/Home');
 
   useEffect(() => {
     const fetchMovieData = async () => {
