@@ -1,38 +1,34 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import fetchMovies from '../../сomponents/api';
-
-function MovieReviews() {
-  const { movieId } = useParams();
-  const [movie, setMovie] = useState(null);
-  const movieReviewsUrl = `https://api.themoviedb.org/3/movie/${movieId}/reviews?language=en-US&page=1`;
-
+import { getMovieRewiew } from "../../movi-api";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+export default function MovieReviews() {
+  const { moviId } = useParams();
+  const [movi, setMovi] = useState(null);
+  const [errors, setErrors] = useState(false);
   useEffect(() => {
-    async function getMovieReviews() {
+    async function getData() {
       try {
-        const response = await fetchMovies(movieReviewsUrl);
-        setMovie(response.results);
+        const data = await getMovieRewiew(moviId);
+        setMovi(data);
       } catch (error) {
-        console.log(error);
+        setErrors(true);
       }
     }
-    getMovieReviews();
-  }, [movieReviewsUrl]);
-
+    getData();
+  }, [moviId]);
+  if (!movi) {
+    return <div>Loading...</div>;
+  }
+  const { results } = movi;
   return (
     <ul>
-      {movie && movie.length > 0 ? (
-        movie?.map((review) => (
-          <li key={review.id}>
-            <b>Author: {review.author}</b>
-            <p> {review.content}</p>
-          </li>
-        ))
-      ) : (
-        <p>We don`t have any reviews for this movie</p>
-      )}
+      {errors && <b>HTTP ERROR!</b>}
+      {results.map((result) => (
+        <li key={result.key}>
+          <h3>Author: {result.author}</h3>
+          <p>{result.content}</p>
+        </li>
+      ))}
     </ul>
   );
 }
-
-export default MovieReviews;

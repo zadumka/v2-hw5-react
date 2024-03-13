@@ -1,41 +1,47 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import fetchMovies from '../../сomponents/api';
-import css from '../MovieCast/MovieCast.module.css';
-
-function MovieCast() {
-  const { movieId } = useParams();
-  const movieCastUrl = `https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`;
-
-  const [movie, setMovie] = useState(null);
-
+import { getMovieCast } from "../../movi-api";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+export default function MovieCast() {
+  const { moviId } = useParams();
+  const [movi, setMovi] = useState(null);
+  const [errors, setErrors] = useState(false);
   useEffect(() => {
-    async function getMoviesCast() {
+    async function getData() {
       try {
-        const response = await fetchMovies(movieCastUrl);
-        setMovie(response.cast);
+        const data = await getMovieCast(moviId);
+        setMovi(data);
       } catch (error) {
-        console.log(error);
+        setErrors(true);
       }
     }
-    getMoviesCast();
-  }, [movieCastUrl]);
+    getData();
+  }, [moviId]);
+  if (!movi) {
+    return <div>Loading...</div>;
+  }
+  const { cast } = movi;
 
   return (
-    <ul>
-      {movie?.map((actor) => (
-        <li key={actor.id} className={css.item}>
-          {actor.name}
-          <img
-            className={css.img}
-            src={`https://image.tmdb.org/t/p/w500/${actor?.profile_path}`}
-            alt=""
-          />
-          <span>Character: {actor.character}</span>
-        </li>
-      ))}
-    </ul>
+    <div>
+      {errors && <b>HTTP ERROR!</b>}
+      <ul>
+        {" "}
+        {cast.map((oneCast) => (
+          <li key={oneCast.id}>
+            {" "}
+            <img
+              src={`https://image.tmdb.org/t/p/w500/${oneCast.profile_path}`}
+              alt={oneCast.original_name}
+              width="17%"
+            />
+            <p>{oneCast.original_name}</p>
+            <p>
+              Character:
+              {oneCast.character}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
-
-export default MovieCast;

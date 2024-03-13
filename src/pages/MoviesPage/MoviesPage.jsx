@@ -1,55 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import MovieList from '../../сomponents/MovieList/MovieList';
-import fetchMovies from '../../сomponents/api';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { getSearchMovies } from "../../movi-api";
+import MoviFind from "../../Сomponents/MovieFinded/MovieFinded.jsx";
+import MoviesFilter from "../../Сomponents/MoviesFilter/MoviesFilter.jsx";
 
-function MoviesPage() {
-  const [query, setQuery] = useState('');
-  const [movies, setMovies] = useState([]);
-  const [params, setParams] = useSearchParams();
-  const value = params.get('query') ?? '';
+export default function MoviesPage() {
+  const [findmovi, setFindMovi] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState(false);
 
-  const movieQuery = `https://api.themoviedb.org/3/search/movie?query=${value}&include_adult=false&language=en-US&page=1`;
-
+  const [params] = useSearchParams();
+  const value = params.get("query") ?? "";
   useEffect(() => {
-    async function searchMovies() {
+    async function getData() {
       try {
-        const response = await fetchMovies(movieQuery);
-        setMovies(response.results);
-        console.log(response.results);
+        setIsLoading(true);
+        const data = await getSearchMovies(value);
+        setFindMovi(data);
       } catch (error) {
-        console.log(error);
+        setErrors(true);
+      } finally {
+        setIsLoading(false);
       }
     }
-    searchMovies();
-  }, [movieQuery]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setParams({ query: e.target.query.value });
-  };
+    getData();
+  }, [value]);
 
   return (
     <div>
-      <form
-        onSubmit={(e) => {
-          handleSubmit(e);
-        }}
-      >
-        <input
-          type="text"
-          name="query"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="submit">Search</button>
-      </form>
+      <MoviesFilter />
 
-      <ul>
-        <MovieList data={movies || []} />
-      </ul>
+      {isLoading && <b>Loading payments...</b>}
+      {errors && <b>HTTP ERROR!</b>}
+      <MoviFind movies={findmovi} />
     </div>
   );
 }
-
-export default MoviesPage;

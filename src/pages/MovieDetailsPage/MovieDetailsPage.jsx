@@ -1,73 +1,80 @@
-import { NavLink, useParams, Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useState, useRef, Suspense } from 'react';
-import { BiArrowBack } from 'react-icons/bi';
-import fetchMovies from '../../сomponents/api';
-import css from '../MovieDetailsPage/MovieDetailsPage.module.css';
+import { useEffect, useState } from "react";
+import css from "./MovieDetailsPage.module.css";
+import {
+  useParams,
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
+import { getMoviesById } from "../../movi-api";
 
-function MovieDetailsPage() {
-  const { movieId } = useParams();
-  const moviesByIdUrl = `https://api.themoviedb.org/3/movie/${movieId}`;
-
-  const [movie, setMovie] = useState(null);
+export default function MovieDetailsPage() {
   const location = useLocation();
-  const backLinkRef = useRef(location.state || '/');
-
+  const { moviId } = useParams();
+  const [movi, setMovi] = useState(null);
+  const [errors, setErrors] = useState(false);
   useEffect(() => {
-    async function getMoviesById() {
+    async function getData() {
       try {
-        const response = await fetchMovies(moviesByIdUrl);
-        setMovie(response);
+        const data = await getMoviesById(moviId);
+        setMovi(data);
       } catch (error) {
-        console.log(error);
+        setErrors(true);
       }
     }
-    getMoviesById();
-  }, [moviesByIdUrl]);
-
+    getData();
+  }, [moviId]);
+  if (!movi) {
+    return <div>Loading...</div>;
+  }
+  const {
+    original_title,
+    release_date,
+    vote_average,
+    overview,
+    genres,
+    poster_path,
+    title,
+  } = movi;
   return (
-    <div>
-      <NavLink to={backLinkRef.current} className={css.backLink}>
-        <BiArrowBack />
-        Go back
-      </NavLink>
-      <div className={css.card}>
-        <img
-          className={css.img}
-          src={`https://image.tmdb.org/t/p/w500/${movie?.poster_path}`}
-          alt={movie?.title}
-        />
-        <div className={css.info}>
-          <h1>{movie?.title}</h1>
-          <p>User score: {Math.round(movie?.vote_average * 10)}%</p>
-          <h2>Overview</h2>
-          <p>{movie?.overview}</p>
-          <h3>Genres</h3>
-          <p>
-            {movie?.genres.map((genre) => (
-              <span className={css.genre} key={genre.id}>
-                {genre.name}
-              </span>
+    <div className={css.bigDiv}>
+      {errors && <b>HTTP ERROR!</b>}
+      {movi && (
+        <div className={css.moviDetails}>
+          <div className={css.firstDiv}>
+            {" "}
+            <Link to={location.state}>Go back</Link>
+            <img
+              src={`https://image.tmdb.org/t/p/w500/${poster_path}`}
+              alt={title}
+            />
+          </div>
+          <div className={css.secondDiv}>
+            {" "}
+            <h1>
+              {original_title} ({`${release_date}`.substr(0, 4)})
+            </h1>
+            <p>User score: {Number(`${vote_average}`.substr(0, 3)) * 10}%</p>
+            <h2>Overview</h2>
+            <p>{overview}</p>
+            <h2>Genres</h2>
+            {genres.map((genre) => (
+              <p key={genre.id}>{genre.name}</p>
             ))}
-          </p>
+          </div>
         </div>
-      </div>
-
-      <div className={css.infoContainer}>
-        <p>Additional information</p>
-        <ul className={css.infoList}>
-          <li>
-            <NavLink to="cast">Cast</NavLink>
-          </li>
-          <li>
-            <NavLink to="reviews">Reviews</NavLink>
-          </li>
-        </ul>
-        <Suspense fallback={<div>Loading subcomponent...</div>}>
-          <Outlet />
-        </Suspense>
-      </div>
+      )}
+      <h3>Aditional infomation</h3>
+      <ul>
+        <li>
+          <NavLink to="cast">Cast</NavLink>
+        </li>
+        <li>
+          <NavLink to="reviews">Reviews</NavLink>
+        </li>
+      </ul>
+      <Outlet />
     </div>
   );
 }
-
-export default MovieDetailsPage;

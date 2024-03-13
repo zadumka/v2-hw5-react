@@ -1,36 +1,32 @@
-import { useEffect, useState } from 'react';
-import MovieList from '../../сomponents/MovieList/MovieList';
-import fetchMovies from '../../сomponents/api';
-import css from '../HomePage/HomePage.module.css';
+import { useEffect, useState } from "react";
+import { getTranding } from "../../movi-api";
+import TrendigMovies from "../../Сomponents/TrendingMovies/TrendingMovies.jsx";
 
-function HomePage() {
-  const [trendingMovies, setTrendingMovies] = useState([]);
-
-  const trendingMoviesUrl =
-    'https://api.themoviedb.org/3/trending/movie/day?language=en-US';
+export default function HomePage() {
+  const [trandingMovies, setTrandingMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState(false);
 
   useEffect(() => {
-    async function getMovies() {
+    async function getData() {
       try {
-        const response = await fetchMovies(trendingMoviesUrl);
-
-        const results = response.results;
-        setTrendingMovies(results);
+        setIsLoading(true);
+        const data = await getTranding();
+        setTrandingMovies(data);
       } catch (error) {
-        console.log(error);
+        setErrors(true);
+      } finally {
+        setIsLoading(false);
       }
     }
-    getMovies();
+    getData();
   }, []);
-
   return (
-    <>
-      <div className={css.container}>
-        <h1>Trending today</h1>
-        <MovieList data={trendingMovies} />
-      </div>
-    </>
+    <div>
+      <h1>Trendig today</h1>
+      {isLoading && <b>Loading payments...</b>}
+      {errors && <b>HTTP ERROR!</b>}
+      <TrendigMovies movies={trandingMovies} />
+    </div>
   );
 }
-
-export default HomePage;
