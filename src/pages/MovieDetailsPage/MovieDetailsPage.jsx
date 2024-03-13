@@ -1,82 +1,73 @@
-import { NavLink, Outlet, useParams, useLocation } from 'react-router-dom';
-import { useEffect, useState, Suspense, useRef } from 'react';
-import { getDataById } from '../../fetchArticles';
-import { BackLink, Loader, ErrorMessage } from '../../components';
-import css from './MovieDetailsPage.module.css';
-const defaultImg = 'https://dl-media.viber.com/10/share/2/long/vibes/icon/image/0x0/95e0/5688fdffb84ff8bed4240bcf3ec5ac81ce591d9fa9558a3a968c630eaba195e0.jpg'
+import { NavLink, useParams, Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { BiArrowBack } from 'react-icons/bi';
+import fetchMovies from '../../сomponents/api';
+import css from '../MovieDetailsPage/MovieDetailsPage.module.css';
 
-export default function MovieDetailsPage() {
+function MovieDetailsPage() {
   const { movieId } = useParams();
-  const [movieData, setMovieData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const moviesByIdUrl = `https://api.themoviedb.org/3/movie/${movieId}`;
+
+  const [movie, setMovie] = useState(null);
   const location = useLocation();
-  const backLinkHref = useRef(location?.state?.from ?? '/Home');
+  const backLinkRef = useRef(location.state || '/');
 
   useEffect(() => {
-    const fetchMovieData = async () => {
+    async function getMoviesById() {
       try {
-        setIsLoading(true);
-        const data = await getDataById(movieId);
-        setMovieData(data);
+        const response = await fetchMovies(moviesByIdUrl);
+        setMovie(response);
       } catch (error) {
-        setError(true);
-      } finally {
-        setIsLoading(false);
+        console.log(error);
       }
-    };
-
-    fetchMovieData();
-  }, [movieId]);
+    }
+    getMoviesById();
+  }, [moviesByIdUrl]);
 
   return (
-    <>
-      <BackLink to={backLinkHref.current}>Go back</BackLink>
-
-      {isLoading && <Loader />}
-      {error && <ErrorMessage />}
-
-      {movieData && <div> <div className={css.detailsContent}>
-        <div className={css.imageContent}>
-          <img
-            className={css.image}
-            src={movieData.poster_path ? `https://image.tmdb.org/t/p/w500/${movieData.poster_path}` : defaultImg}
-            alt={movieData.title}
-          />
-        </div>
-        <div className={css.textContent}>
-          <h2 className={css.title}>{movieData.title}</h2>
-
-          <h3>User Score:</h3>
-          <p className={css.score}>{movieData.vote_average}</p>
-
-          <h3>Overview:</h3>
-          <p className={css.overview}>{movieData.overview}</p>
-
-          <h3>Genres:</h3>
-          {movieData.genres && (
-            <p>{movieData.genres.map(genre => genre.name).join(', ')}</p>
-          )}
+    <div>
+      <NavLink to={backLinkRef.current} className={css.backLink}>
+        <BiArrowBack />
+        Go back
+      </NavLink>
+      <div className={css.card}>
+        <img
+          className={css.img}
+          src={`https://image.tmdb.org/t/p/w500/${movie?.poster_path}`}
+          alt={movie?.title}
+        />
+        <div className={css.info}>
+          <h1>{movie?.title}</h1>
+          <p>User score: {Math.round(movie?.vote_average * 10)}%</p>
+          <h2>Overview</h2>
+          <p>{movie?.overview}</p>
+          <h3>Genres</h3>
+          <p>
+            {movie?.genres.map((genre) => (
+              <span className={css.genre} key={genre.id}>
+                {genre.name}
+              </span>
+            ))}
+          </p>
         </div>
       </div>
-      <h3 className={css.addInfo}>Additional information</h3>
-      <ul className={css.details}>
-        <li>
-          <NavLink to={`cast`} >
-            Cast
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to={`reviews`} >
-            Reviews
-          </NavLink>
-        </li>
-      </ul> </div>
-}
-      
-      <Suspense fallback={<div>Loading subpage...</div>}>
-        <Outlet />
-      </Suspense>
-    </>
+
+      <div className={css.infoContainer}>
+        <p>Additional information</p>
+        <ul className={css.infoList}>
+          <li>
+            <NavLink to="cast">Cast</NavLink>
+          </li>
+          <li>
+            <NavLink to="reviews">Reviews</NavLink>
+          </li>
+        </ul>
+        <Suspense fallback={<div>Loading subcomponent...</div>}>
+          <Outlet />
+        </Suspense>
+      </div>
+    </div>
   );
 }
+
+export default MovieDetailsPage;
