@@ -1,25 +1,33 @@
-import { Route, Routes } from "react-router-dom";
-import Navigation from "../Navigation/Navigation.jsx";
-import HomePage from "../../pages/HomePage/HomePage.jsx";
-import MoviesPage from "../../pages/MoviesPage/MoviesPage.jsx";
-import MovieDetailsPage from "../../pages/MovieDetailsPage/MovieDetailsPage.jsx";
-import NotFound from "../../pages/NotFoundPage/NotFoundPage.jsx";
-import MovieCast from "../MovieCast/MovieCast.jsx";
-import MovieReviews from "../MovieReviews/MovieReviews.jsx";
+import NotFoundPage from '../../pages/NotFoundPage';
+import { Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import Loader from '../Loader/Loader';
 
-export default function App() {
+const HomePage = lazy(() => import('../../pages/HomePage/HomePage'));
+const MoviesPage = lazy(() => import('../../pages/MoviesPage'));
+const MovieDetailsPage = lazy(() => import('../../pages/MovieDetailsPage'));
+const MovieCast = lazy(() => import('../MovieCast/MovieCast'));
+const MovieReviews = lazy(() => import('../MovieReviews/MovieReviews'));
+const Navigation = lazy(() => import('../Navigation/Navigation'));
+
+function App() {
   return (
-    <div>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/movies" element={<MoviesPage />} />
-        <Route path="/movies/:moviId" element={<MovieDetailsPage />}>
-          <Route path="cast" element={<MovieCast />} />
-          <Route path="reviews" element={<MovieReviews />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </div>
+    <>
+      <Suspense fallback={<Loader />}>
+        <Navigation />
+
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/movies" element={<MoviesPage />} />
+          <Route path="/movies/:movieId" element={<MovieDetailsPage />}>
+            <Route path="cast" element={<MovieCast />} />
+            <Route path="reviews" element={<MovieReviews />} />
+          </Route>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </>
   );
 }
+
+export default App;

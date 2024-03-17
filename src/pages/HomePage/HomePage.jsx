@@ -1,32 +1,33 @@
-import { useEffect, useState } from "react";
-import { getTranding } from "../../movi-api";
-import TrendigMovies from "../../Сomponents/TrendingMovies/TrendingMovies.jsx";
+import { useEffect, useState } from 'react';
+import { fetchData } from '../../api';
+import MovieList from '../../components/MovieList/MovieList';
+import Error from '../../components/Error/Error';
 
-export default function HomePage() {
-  const [trandingMovies, setTrandingMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState(false);
+const HomePage = () => {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function getData() {
+    async function fetchedData() {
       try {
-        setIsLoading(true);
-        const data = await getTranding();
-        setTrandingMovies(data);
+        setError(false);
+        const data = await fetchData();
+        setData(data.results);
       } catch (error) {
-        setErrors(true);
-      } finally {
-        setIsLoading(false);
+        setError(true);
       }
     }
-    getData();
+
+    fetchedData();
   }, []);
+
   return (
-    <div>
-      <h1>Trendig today</h1>
-      {isLoading && <b>Loading payments...</b>}
-      {errors && <b>HTTP ERROR!</b>}
-      <TrendigMovies movies={trandingMovies} />
-    </div>
+    <main>
+      <h1>Trending today</h1>
+      {error && <Error />}
+      {data && <MovieList data={data} />}
+    </main>
   );
-}
+};
+
+export default HomePage;

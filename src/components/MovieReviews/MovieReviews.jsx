@@ -1,34 +1,64 @@
-import { getMovieRewiew } from "../../movi-api";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-export default function MovieReviews() {
-  const { moviId } = useParams();
-  const [movi, setMovi] = useState(null);
-  const [errors, setErrors] = useState(false);
+import { useEffect, useState } from 'react';
+import { fetchMovieReviews } from '../../api';
+import { useParams } from 'react-router-dom';
+import css from './MovieReviews.module.css';
+
+const MovieReviews = () => {
+  const [reviews, setReviews] = useState([]);
+  const { movieId } = useParams();
+
   useEffect(() => {
-    async function getData() {
+    async function fetchedData() {
       try {
-        const data = await getMovieRewiew(moviId);
-        setMovi(data);
+        const data = await fetchMovieReviews(movieId);
+        setReviews(data.results);
       } catch (error) {
-        setErrors(true);
+        console.log('error');
       }
     }
-    getData();
-  }, [moviId]);
-  if (!movi) {
-    return <div>Loading...</div>;
-  }
-  const { results } = movi;
+
+    fetchedData();
+  }, [movieId]);
+
   return (
-    <ul>
-      {errors && <b>HTTP ERROR!</b>}
-      {results.map((result) => (
-        <li key={result.key}>
-          <h3>Author: {result.author}</h3>
-          <p>{result.content}</p>
-        </li>
-      ))}
-    </ul>
+    <>
+      {reviews.length > 0 ? (
+        <ul className={css.list}>
+          {reviews?.map(
+            ({
+              id,
+              content,
+              author_details: { username, avatar_path },
+              created_at,
+            }) => (
+              <li key={id}>
+                <div className={css.userInfoContainer}>
+                  <div className={css.userInfo}>
+                    {avatar_path && (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w500${avatar_path}`}
+                        alt={`user avatar`}
+                        className={css.avatar}
+                      />
+                    )}
+                    <div>
+                      <span className={css.username}>@{username}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className={css.commentContainer}>
+                  <p className={css.comment}>{content}</p>
+                  <span className={css.date}>{created_at}</span>
+                </div>
+              </li>
+            )
+          )}
+        </ul>
+      ) : (
+        <div>There aren&apos;t any reviews yet.</div>
+      )}
+    </>
   );
-}
+};
+
+export default MovieReviews;

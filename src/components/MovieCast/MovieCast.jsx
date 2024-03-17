@@ -1,47 +1,62 @@
-import { getMovieCast } from "../../movi-api";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-export default function MovieCast() {
-  const { moviId } = useParams();
-  const [movi, setMovi] = useState(null);
-  const [errors, setErrors] = useState(false);
+import { useEffect, useState } from 'react';
+import { fetchMovieCast } from '../../api';
+import Error from '../Error/Error';
+import { useParams } from 'react-router-dom';
+import css from './MovieCast.module.css';
+
+const MovieCast = () => {
+  const [cast, setCast] = useState([]);
+  const { movieId } = useParams();
+  const [error, setError] = useState(false);
+
   useEffect(() => {
-    async function getData() {
+    async function fetchedData() {
       try {
-        const data = await getMovieCast(moviId);
-        setMovi(data);
+        const data = await fetchMovieCast(movieId);
+        setCast(data.cast);
       } catch (error) {
-        setErrors(true);
+        setError(true);
       }
     }
-    getData();
-  }, [moviId]);
-  if (!movi) {
-    return <div>Loading...</div>;
-  }
-  const { cast } = movi;
+
+    fetchedData();
+  }, [movieId]);
 
   return (
-    <div>
-      {errors && <b>HTTP ERROR!</b>}
-      <ul>
-        {" "}
-        {cast.map((oneCast) => (
-          <li key={oneCast.id}>
-            {" "}
-            <img
-              src={`https://image.tmdb.org/t/p/w500/${oneCast.profile_path}`}
-              alt={oneCast.original_name}
-              width="17%"
-            />
-            <p>{oneCast.original_name}</p>
-            <p>
-              Character:
-              {oneCast.character}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {error && <Error />}
+      {!cast.length && <div>This information has not been added yet</div>}
+      {cast.length && (
+        <ul className={css.list}>
+          {cast?.map(({ id, name, character, profile_path }) => (
+            <li key={id}>
+              <div className={css.imageContainer}>
+                {profile_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500${profile_path}`}
+                    alt={name}
+                  />
+                ) : (
+                  <div
+                    width={240}
+                    style={{
+                      backgroundColor: 'lightgray',
+                      height: 360,
+                      width: 240,
+                    }}
+                  ></div>
+                )}
+              </div>
+              <div className={css.actorDesc}>
+                <span className={css.name}>{name}</span>
+                <span className={css.character}>{character}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
-}
+};
+
+export default MovieCast;
